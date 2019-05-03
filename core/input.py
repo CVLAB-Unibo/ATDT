@@ -117,6 +117,16 @@ class Dataloader(MetaLoader):
             else:
                 image = tf.cond(do_augment > 0.5, lambda: self.augment_image(image_o), lambda: (image_o))
             
+            
+            # resizing
+            if self.resize:
+                image=tf.image.resize_images(image,[self.resize_h,self.resize_w])
+
+                if self.task == 'semantic' or self.task =='semantic-aligned':
+                    gt = tf.image.resize_images(gt,[self.resize_h,self.resize_w],method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                else:
+                    gt = tf.image.resize_images(gt,[self.resize_h,self.resize_w])
+            
             if self.crop:
                 if not self.central_crop:
                     print("Random Crop")
@@ -128,15 +138,6 @@ class Dataloader(MetaLoader):
                     print("Central Crop")
                     image = tf.image.resize_image_with_crop_or_pad(image, self.crop_h, self.crop_w)
                     gt = tf.image.resize_image_with_crop_or_pad(gt, self.crop_h, self.crop_w)
-            
-            # resizing
-            if self.resize:
-                image=tf.image.resize_images(image,[self.resize_h,self.resize_w])
-
-                if self.task == 'semantic' or self.task =='semantic-aligned':
-                    gt = tf.image.resize_images(gt,[self.resize_h,self.resize_w],method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-                else:
-                    gt = tf.image.resize_images(gt,[self.resize_h,self.resize_w])
                
             image.set_shape([None, None, 3])
 
