@@ -6,7 +6,7 @@ import tensorflow as tf
 from collections import namedtuple
 import math
 
-from utils import *
+from utils.utils import *
 
 parser = argparse.ArgumentParser(description='Evaluation on the cityscapes validation set')
 parser.add_argument('--dataset_source', dest='dataset_source', choices=['synthia','syncity','kitti','cityscapes','carla'], default=None, help='synthia,syncity')
@@ -29,7 +29,7 @@ parser.add_argument('--crop_w', dest='crop_w', type=int, default=-1, help='then 
 parser.add_argument('--crop_h', dest='crop_h', type=int, default=-1, help='then crop to this size')
 
 ### SEMANTIC PARAMS
-parser.add_argument('--num_classes', dest='num_classes', type=int, default=19, help='[SEMANTIC] # of classes')
+parser.add_argument('--num_classes', dest='num_classes', type=int, default=11, help='[SEMANTIC] # of classes')
 parser.add_argument('--format_pred', type=str, choices=['id','trainId'], default='trainId',help='[SEMANTIC] encoding of predictions, trainId or id')
 parser.add_argument('--format_gt', type=str, choices=['id','trainId'], default='trainId',help='[SEMANTIC] encoding of gt, trainId or id')
 parser.add_argument('--ignore_label', type=int, default=255, help='[SEMANTIC] label to ignore in evaluation')
@@ -54,9 +54,10 @@ dict_focals={
 
 if args.dataset_source == None:
     focal_source=dict_focals[args.dataset_target]
+else:
+    focal_source=dict_focals[args.dataset_source]
 
 focal_target=dict_focals[args.dataset_target]
-focal_source=dict_focals[args.dataset_source]
 
 id2trainId = { label.id : label.trainId for label in labels }
 id2name =  { label.id : label.name for label in labels }
@@ -98,14 +99,12 @@ def compute_errors(gt, pred):
 
 ### INPUTS ###
 if args.task == 'depth' or args.task == 'unsupervised-depth':
-    prediction_placeholder = tf.placeholder(tf.float32)
-    prediction_placeholder.set_shape([None,None,1])
-    gt_placeholder = tf.placeholder(tf.float32)
+    prediction_placeholder = tf.placeholder(tf.float32,shape=[None,None,1])
+    gt_placeholder = tf.placeholder(tf.float32,shape=[None,None,1])
     resize_method = tf.image.ResizeMethod.BILINEAR
 elif args.task == 'semantic':
-    prediction_placeholder = tf.placeholder(tf.int32)
-    prediction_placeholder.set_shape([None,None,1])
-    gt_placeholder = tf.placeholder(tf.int32)
+    prediction_placeholder = tf.placeholder(tf.int32, shape=[None,None,1])
+    gt_placeholder = tf.placeholder(tf.int32,shape=[None,None,1])
     resize_method = tf.image.ResizeMethod.NEAREST_NEIGHBOR
 
 gt = gt_placeholder
@@ -160,7 +159,7 @@ with tf.Session() as sess:
             print(idx, "/", lenght, end='\r')
             img_path = line.split(";")[0].strip()
             pred_path = os.path.join(args.pred_folder, img_path.replace("/","_"))
-
+            
             if args.task == 'depth' or args.task == 'unsupervised-depth':
                 if args.dataset_target=='kitti':
                     id_img=img_path.split("/")[-1].split("_")[0]
@@ -199,7 +198,6 @@ with tf.Session() as sess:
                 gt_path = os.path.join(args.data_path,line.split(";")[2].strip())
                 pred_value = cv2.imread(pred_path,cv2.IMREAD_GRAYSCALE)
                 gt_value = cv2.imread(gt_path,cv2.IMREAD_GRAYSCALE)
-                
                 if args.convert_to=='carla':
                     if args.convert_gt:
                         gt_value = convert_to_carla(gt_value)

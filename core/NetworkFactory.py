@@ -40,7 +40,8 @@ class Network(object):
         self.summary_scalar=[]
 
         self.build()
-        self.build_summary()
+        if self.params.mode == 'train':
+            self.build_summary()
 
     def build(self):
         raise NotImplementedError("Please Implement this method")

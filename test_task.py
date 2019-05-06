@@ -6,9 +6,9 @@ import argparse
 import cv2
 import time
 
-from utils import *
-import NetworkFactory
-from input import Dataloader
+from utils.utils import *
+import core.NetworkFactory as NetworkFactory
+from core.input import Dataloader
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--data_path', dest='data_path',  help='absolute path to dataset containing folder')
@@ -16,7 +16,7 @@ parser.add_argument('--input_list_val_test', dest='input_list_val_test', default
 parser.add_argument('--checkpoint_path', dest='checkpoint_path', default='./checkpoint', help='checkpoint folder or path')
 parser.add_argument('--test_dir', dest='test_dir', default='./test/', help='test sample are saved here')
 
-parser.add_argument('--num_classes', dest='num_classes', type=int, default=19, help='# of classes')
+parser.add_argument('--num_classes', dest='num_classes', type=int, default=11, help='# of classes')
 parser.add_argument('--encoder', dest='encoder', default='dilated-resnet', choices=['vgg','resnet','dilated-resnet'], help='resnet, dilated-resnet or vgg')
 parser.add_argument('--task', dest='task', required=True, choices=['semantic','depth', 'unsupervised-depth','normals'], help='task')
 parser.add_argument('--use_skips', dest='use_skips', action='store_true', help='use skip connection beetween encoder and decoder')
@@ -146,5 +146,6 @@ with tf.Session() as sess:
             dest_path = os.path.join(args.test_dir, "semantic_volume", lines[i].split(";")[0].replace("/","_").replace(".png",".npz"))
             np.savez_compressed(dest_path, outputs_values[tot])
 
+    print("Completed.")
     coord.request_stop()
     coord.join(stop_grace_period_secs=30)

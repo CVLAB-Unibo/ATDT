@@ -153,6 +153,8 @@ class Dataloader(MetaLoader):
         elif self.mode == 'test':
             self.image_batch = image_o
             self.image_batch.set_shape([None,None, 3])
+            if self.resize:
+                self.image_batch=tf.image.resize_images(self.image_batch,[self.resize_h,self.resize_w])
             if self.crop:
                 self.image_batch = tf.image.resize_image_with_crop_or_pad(self.image_batch,self.crop_h,self.crop_w)
                 self.image_batch.set_shape([self.crop_h,self.crop_w, 3])
