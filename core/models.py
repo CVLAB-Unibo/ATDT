@@ -188,7 +188,7 @@ def build_model(inputs, out_channels, use_skips=False, encoder='dilated-resnet',
         else:
             raise NotImplementedError("Architecture not implemented")
 
-def transfer_network(features_source):
+def transfer_network(features_source, normalizer_fn=None):
     conv1 = conv(features_source,2048,3,2)
     conv2 = conv(conv1,2048,3,2) 
     upconv1 = upconv(conv2,  2048, 3, 2)

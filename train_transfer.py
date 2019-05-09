@@ -1,13 +1,13 @@
 import tensorflow as tf
-from ops import *
-from input import *
 import argparse
-from utils import *
 import time
 import datetime
-import models
 import sys
-from NetworkFactory import TransferNetwork
+
+from core.ops import *
+from core.input import *
+from utils.utils import *
+from core.NetworkFactory import TransferNetwork
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--data_path', dest='data_path',  help='absolute path to dataset containing folder')
@@ -23,7 +23,7 @@ parser.add_argument('--normalizer_fn', dest='normalizer_fn', default='None', cho
 parser.add_argument("--model", default='dilated-resnet', choices=['vgg','resnet','dilated-resnet'], help='resnet, dilated-resnet, vgg')
 
 parser.add_argument('--target_task', dest='target_task', choices=['semantic','depth', 'unsupervised-depth','normals'], help='[DECODER] target_task')
-parser.add_argument('--num_classes', dest='num_classes', type=int, default=19, help='[DECODER] # of classes')
+parser.add_argument('--num_classes', dest='num_classes', type=int, default=11, help='[DECODER] # of classes')
 
 parser.add_argument('--use_skips', dest='use_skips', action='store_true', help='use skip connection beetween encoder and decoder')
 parser.set_defaults(use_skips=False)
@@ -49,10 +49,12 @@ parser.set_defaults(random_crop=False)
 parser.add_argument('--crop_w', dest='crop_w', type=int, default=-1, help='[ENCODER] then crop to this size')
 parser.add_argument('--crop_h', dest='crop_h', type=int, default=-1, help='[ENCODER] then crop to this size')
 
+parser.add_argument('--not_full_summary', dest='full_summary', action='store_false', help='summary images')
+parser.set_defaults(full_summary=True)
 args = parser.parse_args()
 
 params = Parameters(
-    args.encoder,
+    args.model,
     args.central_crop or args.random_crop,
     args.crop_h, 
     args.crop_w, 
@@ -70,8 +72,7 @@ params = Parameters(
     args.num_classes,
     False)
 
-inputs_all = Dataloader(params, False, central_crop=args.central_crop).inputs
-inputs, gts = inputs_all
+inputs = Dataloader(params, False, central_crop=args.central_crop).inputs
 
 model = TransferNetwork(inputs, params)
 loss = model.loss
@@ -82,7 +83,8 @@ lr = tf.placeholder(tf.float32)
 optim = tf.train.AdamOptimizer(lr,args.beta1).minimize(loss,var_list=var_list)
 
 summary_image = tf.summary.merge(model.summary_images)
-summary_scalar = tf.summary.merge(model.summary_scalar.append(tf.summary.scalar("lr", lr)))
+model.summary_scalar.append(tf.summary.scalar("lr", lr))
+summary_scalar = tf.summary.merge(model.summary_scalar)
 
 writer = tf.summary.FileWriter(args.checkpoint_dir)
 

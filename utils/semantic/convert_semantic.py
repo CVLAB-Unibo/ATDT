@@ -37,7 +37,7 @@ Label = namedtuple( 'Label' , [
     'color'       , # The color of this label
     ] )
 
-labels_default = [
+labels_cityscapes = [
     #       name                     id    trainId   category            catId     hasInstances   ignoreInEval   color
     Label(  'unlabeled'            ,  0 ,      255 , 'void'            , 0       , False        , True         , (  0,  0,  0) ),
     Label(  'ego vehicle'          ,  1 ,      255 , 'void'            , 0       , False        , True         , (  0,  0,  0) ),
@@ -76,8 +76,7 @@ labels_default = [
     Label(  'license plate'        , -1 ,       -1 , 'vehicle'         , 7       , False        , True         , (  0,  0,142) ),
 ]
 
-
-labels_carla = [
+labels_default = [
     #       name                     id    trainId   category            catId     hasInstances   ignoreInEval   color
     Label(  'road'                 ,  0 ,        0 , 'flat'            , 1       , False        , False        , (128, 64,128) ),
     Label(  'sidewalk'             ,  1 ,        1 , 'flat'            , 1       , False        , False        , (244, 35,232) ),
@@ -105,13 +104,13 @@ parser.add_argument('--input_path', type=str,   help='path to the folder or to t
 parser.add_argument('--output_path', type=str,   help='path to output folder ', default="./output_converted")
 parser.add_argument('--from_encoding', type=str,   help='from which encoding', choices=['id','trainId'], default="id")
 parser.add_argument('--to_encoding', type=str,   help='to which encoding [id,trainId,color], multiple choice allowed divided by ,', default="color")
-parser.add_argument('--dataset', type=str, default="cityscapes")
+parser.add_argument('--dataset', type=str, default="default")
 args=parser.parse_args()
 
-if args.dataset=='carla':
-    labels=labels_carla
+if args.dataset=='default':
+    labels=labels_default
 else:
-    labelslabels_default
+    labels=labels_cityscapes
 
 if not os.path.exists(args.output_path):
     os.makedirs(args.output_path)

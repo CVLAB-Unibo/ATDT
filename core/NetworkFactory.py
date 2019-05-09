@@ -63,8 +63,7 @@ class SemanticNetwork(Network):
         gts_sum = color_tensorflow(self.labels)
         self.summary_images.append(tf.summary.image("pred",self.pred))
         self.summary_images.append(tf.summary.image("gt",gts_sum))
-        if self.params.mode == 'train': 
-            self.summary_scalar.append(tf.summary.scalar("loss", self.loss))
+        self.summary_scalar.append(tf.summary.scalar("loss", self.loss))
 
 class DepthNetwork(Network):
     def __init__(self,inputs, params, reuse_variables=False):
@@ -80,8 +79,7 @@ class DepthNetwork(Network):
         gts_sum = colormap_depth(tf.clip_by_value(self.labels,0,100),cmap='jet')
         self.summary_images.append(tf.summary.image("pred",self.pred))
         self.summary_images.append(tf.summary.image("gt",gts_sum))
-        if self.params.mode == 'train': 
-            self.summary_scalar.append(tf.summary.scalar("loss", self.loss))        
+        self.summary_scalar.append(tf.summary.scalar("loss", self.loss))        
     
 class NormalNetwork(Network):
     def __init__(self,inputs, params, reuse_variables=False):
@@ -98,8 +96,7 @@ class NormalNetwork(Network):
         gts_sum = tf.cast(tf.clip_by_value((self.labels+1)/2*255,0,255),tf.uint8)
         self.summary_images.append(tf.summary.image("pred",self.pred))
         self.summary_images.append(tf.summary.image("gt",gts_sum))
-        if self.params.mode == 'train': 
-            self.summary_scalar.append(tf.summary.scalar("loss", self.loss))
+        self.summary_scalar.append(tf.summary.scalar("loss", self.loss))
 
 class TransferNetwork(Network):
     def __init__(self,inputs, params, model='dilated-resnet', encoder_source=True, encoder_target=True, decoder_target=True, reuse_variables=False, feature_level=-1):
@@ -109,20 +106,21 @@ class TransferNetwork(Network):
         self.target_task = params.task
         self.model=model
         self.feature_level=feature_level
-
+        if params.normalizer_fn == 'batch_norm':
+            self.normalizer_fn_frozen = lambda x : tf.layers.batch_normalization(x,training=False)
         super().__init__(inputs, params,reuse_variables)
 
     def build_encoder(self):
         with tf.variable_scope('model'):
             if self.model == 'vgg':
                 print("Building VGG Encoder")
-                features, skips = build_vgg(inputs, self.params.use_skips, normalizer_fn=self.normalizer_fn, reuse_variables=self.reuse_variables)
+                features, skips = build_vgg(self.images, self.params.use_skips, normalizer_fn=self.normalizer_fn_frozen, reuse_variables=self.reuse_variables)
             elif self.model == 'resnet':
                 print("Building ResNet50 Encoder")
-                features, skips = build_resnet50(inputs, self.params.use_skips, normalizer_fn=self.normalizer_fn, reuse_variables=self.reuse_variables)
+                features, skips = build_resnet50(self.images, self.params.use_skips, normalizer_fn=self.normalizer_fn_frozen, reuse_variables=self.reuse_variables)
             elif self.model == 'dilated-resnet':
                 print("Building Dilated-Resnet Encoder")
-                features, skips = build_dilated_resnet50(inputs, self.params.use_skips, normalizer_fn=self.normalizer_fn, reuse_variables=self.reuse_variables)
+                features, skips = build_dilated_resnet50(self.images, self.params.use_skips, normalizer_fn=self.normalizer_fn_frozen, reuse_variables=self.reuse_variables)
             return features, skips
 
     def build_decoder(self,features):
@@ -135,49 +133,57 @@ class TransferNetwork(Network):
         with tf.variable_scope('model'):
             if self.model == 'vgg':
                 print("Building VGG Decoder")
-                output = build_decoder_vgg(features, ch, normalizer_fn=self.normalizer_fn, reuse_variables=self.reuse_variables)
+                output = build_decoder_vgg(features, ch, normalizer_fn=self.normalizer_fn_frozen, reuse_variables=self.reuse_variables)
             elif self.model == 'resnet':
                 print("Building ResNet50 Decoder")
-                output = build_decoder_resnet(features, ch, normalizer_fn=self.normalizer_fn, reuse_variables=self.reuse_variables)
+                output = build_decoder_resnet(features, ch, normalizer_fn=self.normalizer_fn_frozen, reuse_variables=self.reuse_variables)
             elif self.model == 'dilated-resnet':
                 print("Building Dilated-Resnet Decoder")
-                output = build_decoder_dilated_resnet(features, ch, normalizer_fn=self.normalizer_fn, reuse_variables=self.reuse_variables)
+                output = build_decoder_dilated_resnet(features, ch, normalizer_fn=self.normalizer_fn_frozen, reuse_variables=self.reuse_variables)
         return output
 
     def build(self):
         #### ENCODERS ####
         if self.encoder_source:
             with tf.variable_scope('source'):
-                self.features_source, skips = self.build_encoder(inputs,args.encoder,args.use_skips)
-                self.features_source = features_source[self.feature_level]
-        if self.encoder_source:
+                self.features_source, skips = self.build_encoder()
+                self.features_source = self.features_source[self.feature_level]
+        if self.encoder_target:
             with tf.variable_scope('target'):
-                self.features_target, skips = self.build_encoder(inputs,args.encoder,args.use_skips)
-                self.features_target = features_target[self.feature_level]
+                self.features_target, skips = self.build_encoder()
+                self.features_target = self.features_target[self.feature_level]
 
         #### TRANSFER ####
         with tf.variable_scope('transfer',reuse=self.reuse_variables):
             print("Building Transfer Network")
+## RICORDARSI DI AGGIUGNERE LA BATCH NORM ANCHE NELLA TRANSFER ####
             self.adapted_features=transfer_network(self.features_source)
 
         #### DECODERS ####
         if self.decoder_target:
-            self.pred_map = build_decoder(self.adapted_feature)
+            self.pred_map = self.build_decoder(self.adapted_features)
+            if self.target_task == 'semantic':
+                self.pred = tf.expand_dims(tf.cast(tf.argmax(self.pred_map,axis=-1),tf.uint8),axis=-1)
+            elif self.target_task == 'depth':
+                self.pred = tf.clip_by_value(self.pred_map,0,1)
+            elif self.target_task == 'normals':
+                self.pred = tf.nn.tanh((self.pred_map)+1)/2*255
         else:
-            self.pred_map = self.adapted_feature
+            self.pred_map = self.adapted_features
+            self.pred = self.adapted_features
         
         if self.params.mode == 'train':
-            self.loss=tf.reduce_mean(tf.pow(self.features_target-self.adapted_feature,2))
+            self.loss=tf.reduce_mean(tf.pow(self.features_target-self.adapted_features,2))
 
     def build_summary(self):
         if self.decoder_target:
             if self.target_task == 'semantic':
-                output_sum = color_tensorflow(tf.expand_dims(tf.cast(tf.argmax(self.pred_map,axis=-1),tf.uint8),axis=-1))
+                output_sum = color_tensorflow(self.pred)
             elif self.target_task == 'depth':
-                output_sum = colormap_depth(tf.clip_by_value(self.pred_map,0,1), cmap='jet')
-            elif self.target_task == 'normals':
-                output_sum = (tf.nn.tanh(self.pred_map)+1)/2*255
+                output_sum = colormap_depth(self.pred, cmap='jet')
+            elif self.target_task == 'normals':    
+                output_sum = (self.pred)
+
             self.summary_images.append(tf.summary.image("pred", output_sum ,max_outputs=1))
         
-        if self.params.mode == 'train': 
-            self.summary_scalar.append(tf.summary.scalar("loss", self.loss))
+        self.summary_scalar.append(tf.summary.scalar("loss", self.loss))
