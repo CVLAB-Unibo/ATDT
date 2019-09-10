@@ -1,8 +1,4 @@
-<p align="right">
-  <img src="images/logo.png" width=100>
-</p> 
-
-# AT/DT Across Tasks and Domains Transfer
+# _![](images/logo.png)_: Across Tasks and Domains Transfer
 
 <p align="center">
   <img src="images/teaser.png" width=750>
