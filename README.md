@@ -28,6 +28,15 @@ For more details:
 
 ## Requirements
 
+* Python 3
+* `Tensorflow 1.12 or higher` (recomended)
+* `python packages` such as opencv, matplotlib
+
+### Testing system:
+* NVIDIA-GTX 1080Ti
+* CUDA 9.0 
+* CUDNN 7.14
+
 ## Download pretrain models
 
 ## Train 
