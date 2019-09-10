@@ -62,7 +62,7 @@ params = Parameters(
     False)
 
 
-inputs = Dataloader(params,True).image_batch
+inputs = Dataloader(params,True).inputs
 
 model = NetworkFactory.factory(inputs, params)
 pred = model.pred_map

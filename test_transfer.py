@@ -154,7 +154,7 @@ with tf.Session(config=config) as sess:
         start_time = time.time()
         outputs_values = sess.run([adapted_features, pred])
 
-        basename, ext = os.path.splitext(lines[i].split(";")[0].split("/")[-1])
+        basename, ext = os.path.splitext(lines[i].split(";")[0].replace("/","_"))
 
         if args.save_prediction:
             dest_path = os.path.join(args.test_dir,"predictions", basename)

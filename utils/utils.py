@@ -199,7 +199,10 @@ def load(sess, checkpoint_path, mask=[], prefix=""):
         print("Variable to restore: ", len(var_list))
         savvy = tf.train.Saver(var_list=var_list)
         savvy.restore(sess, model_checkpoint_path)
-        return int(q) 
+        try:
+            return int(q) 
+        except:
+            return 0
     else:
         return -1
 

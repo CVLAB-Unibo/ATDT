@@ -24,43 +24,6 @@ class MetaLoader():
     def string_length_tf(self,t):
         return tf.py_func(len, [t], [tf.int64])
 
-class FeatureLoader(MetaLoader):
-    def __init__(self, data_path,filenames_file,feature_shape=[32,32,2048],batch_size=4,mode='train',shuffle=False,num_threads=4):
-        self.data_path = data_path
-        self.filenames_file = filenames_file
-        self.batch_size=batch_size
-        self._shuffle=shuffle
-        self._num_threads=num_threads
-        self._feature_shape=feature_shape
-        self.mode=mode
-        self._load_inputs()
-
-    def read_npz(file_name,key='arr_0'):
-        file_name=file_name.decode('utf-8')
-        t = np.load(file_name)
-        return t['arr_0']
-
-    def _laod_np(self,path_op,shape):
-        data = tf.py_func(lambda x: read_npz(x),[path_op],tf.float32)
-        data = tf.reshape(data,shape)
-        return data
-
-    def _load_inputs(self):
-        
-        tokens = self._decode_filelist()
-
-        domain_a_path = tf.string_join([self.data_path,tokens[0]])
-        self.domain_a=self._laod_np(domain_a_path,self._feature_shape)
-
-        domain_b_path = tf.string_join([self.data_path,tokens[1]])
-        self.domain_b=self._laod_np(domain_b_path,self._feature_shape)
-
-        if self.mode == 'train':
-            self._batch_a, self._batch_b = tf.train.batch([self.domain_a,self.domain_b],self.batch_size,capacity=self.batch_size*50, num_threads=self._num_threads)
-            self.inputs = (self._batch_a,self._batch_b)
-        if self.mode == 'test':
-            self.inputs = (tf.expand_dims(self.domain_a,axis=0),tf.expand_dims(self.domain_b,axis=0))
-
 class Dataloader(MetaLoader):
 
     def __init__(self, params, noShuffle=False, central_crop=False):
