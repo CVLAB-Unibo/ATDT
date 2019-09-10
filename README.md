@@ -1,7 +1,10 @@
-# AT/DT: Across Tasks and Domains Transfer
+# AT/DT Across Tasks and Domains Transfer
 
-![image](images/teaser.png)
 
+<p align="center">
+  <img src="images/teaser.png" width=750>
+</p> 
+                            
 This repository contains the source code of AT/DT, proposed in the paper "Learning Across Tasks and Domains", ICCV 2019.
 If you use this code in your projects, please cite our paper:
 
