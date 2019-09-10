@@ -5,26 +5,7 @@ import os
 import numpy as np
 import abc
 
-class MetaLoader():
-    """
-    Meta Class to share code between different data loader
-    """
-
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self):
-        pass
-    
-    def _decode_filelist(self):
-        self._input_queue = tf.train.string_input_producer([self.filenames_file], shuffle=self._shuffle)
-        line_reader = tf.TextLineReader()
-        _, line = line_reader.read(self._input_queue)
-        return tf.string_split([line],delimiter=";").values
-    
-    def string_length_tf(self,t):
-        return tf.py_func(len, [t], [tf.int64])
-
-class Dataloader(MetaLoader):
+class Dataloader():
 
     def __init__(self, params, noShuffle=False, central_crop=False):
         self.data_path = params.data_path
@@ -48,13 +29,21 @@ class Dataloader(MetaLoader):
 
         self._load_inputs()
     
+    def _decode_filelist(self):
+        self._input_queue = tf.train.string_input_producer([self.filenames_file], shuffle=self._shuffle)
+        line_reader = tf.TextLineReader()
+        _, line = line_reader.read(self._input_queue)
+        return tf.string_split([line],delimiter=";").values
+    
+    def string_length_tf(self,t):
+        return tf.py_func(len, [t], [tf.int64])
+
     def _load_inputs(self):
         split_line = self._decode_filelist()
 
         image_path  = tf.string_join([self.data_path, split_line[0]])
         image_o  = self.read_image(image_path)[:,:,:3]
-        
-        
+    
         if self.task == 'semantic' or self.task =='semantic-aligned':
             semantic_image_path = tf.string_join([self.data_path, split_line[2]])
             gt = self.read_semantic_gt(semantic_image_path)

@@ -1,5 +1,0 @@
-SEQ4/RGBLeft/0000181.png;SEQ4/RGBRight/0000181.png;SEQ4/GTLeft_converted/0000181.png;SEQ4/DepthLeft/0000181.png
-City5/Images/Camera 6/0005_L.png;City5/Images/Camera 6/0005_R.png;SemanticMaps/semanticLabelsTrainIds5_6_0005_L.png;City5/Depth/Camera 6/0005_L.exr
-City7/Images/Camera 1/0012_L.png;City7/Images/Camera 1/0012_R.png;SemanticMaps/semanticLabelsTrainIds7_1_0012_L.png;City7/Depth/Camera 1/0012_L.exr
-SEQ4/RGBLeft/0000216.png;SEQ4/RGBRight/0000216.png;SEQ4/GTLeft_converted/0000216.png;SEQ4/DepthLeft/0000216.png
-City10/Images/Camera 2/0007_L.png;City10/Images/Camera 2/0007_R.png;SemanticMaps/semanticLabelsTrainIds10_2_0007_L.png;City10/Depth/Camera 2/0007_L.exr

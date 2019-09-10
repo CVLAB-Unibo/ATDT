@@ -1,5 +1,6 @@
 logs*/*
-*/__pycache__/*
+*__pycache__*
+*.pyc
 test*/*
 old/*
 runs/*

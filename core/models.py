@@ -4,37 +4,6 @@ from collections import namedtuple
 from core.ops import *
 from utils.utils import *
 
-def SNDCGAN_Discrminator(x, batch_size=16,hidden_activation=tf.nn.leaky_relu, output_dim=1, scope='critic', update_collection=tf.GraphKeys.UPDATE_OPS):
-    with tf.variable_scope(scope):
-        c0_0 = hidden_activation(conv_sn(   x,  64, 3, 3, 1, 1, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c0_0'))
-        c0_1 = hidden_activation(conv_sn(c0_0, 128, 4, 4, 2, 2, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c0_1'))
-        c1_0 = hidden_activation(conv_sn(c0_1, 128, 3, 3, 1, 1, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c1_0'))
-        c1_1 = hidden_activation(conv_sn(c1_0, 256, 4, 4, 2, 2, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c1_1'))
-        c2_0 = hidden_activation(conv_sn(c1_1, 256, 3, 3, 1, 1, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c2_0'))
-        c2_1 = hidden_activation(conv_sn(c2_0, 512, 4, 4, 2, 2, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c2_1'))
-        c3_0 = hidden_activation(conv_sn(c2_1, 512, 3, 3, 1, 1, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='c3_0'))
-        c3_0 = tf.reshape(c3_0, [batch_size, -1])
-        l4 = linear_sn(c3_0, output_dim, spectral_normed=True, update_collection=update_collection, stddev=0.02, name='l4')
-    return tf.reshape(l4, [-1])
-
-
-def build_generator(inputs, reuse_variables=False, normalizer_fn=None):
-    with tf.variable_scope('generator',reuse=reuse_variables):
-        convs = []
-        convs.append(resblock_generator(inputs,      2048))
-        convs.append(resblock_generator(convs[-1],      512, normalizer_fn=normalizer_fn))
-        convs.append(resblock_generator(convs[-1],      128, normalizer_fn=normalizer_fn))
-        convs.append(resblock_generator(convs[-1],inputs.shape[-1].value))
-        return convs[-1], convs
-
-def build_discriminator(inputs, reuse_variables=False, normalizer_fn=None):
-    with tf.variable_scope('discriminator',reuse=reuse_variables):
-        convs = []
-        convs.append(conv(inputs,1024,3,2,normalizer_fn=normalizer_fn))
-        convs.append(conv(convs[-1],512,3,2,normalizer_fn=normalizer_fn))
-        convs.append(conv(convs[-1],1,3,1,activation_fn=None,normalizer_fn=normalizer_fn))
-        return convs,convs
-
 def build_vgg(inputs, use_skips = False, reuse_variables=False, normalizer_fn=None):
     with tf.variable_scope('encoder', reuse=reuse_variables):
         convs = []
