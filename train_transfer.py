@@ -150,7 +150,7 @@ with tf.Session(config=config) as sess:
         out.write('\n')
     
     coord = tf.train.Coordinator()
-    tf.train.start_queue_runners()
+    threads = tf.train.start_queue_runners(sess, coord=coord)
     print('Thread running')
     print('Running the Network')
     
@@ -171,18 +171,19 @@ with tf.Session(config=config) as sess:
             writer.add_summary(summary_string,step)
             print("Step " , step, " loss: ",loss_value, "Time left: ", datetime.timedelta(seconds=time_left))
 
-        if step%100==0 and args.full_summary:
+        if step%100==0 and args.full_summary and step!=0:
             summary_string = sess.run(summary_image)
             writer.add_summary(summary_string,step)
             print("Saved image summary",step)
 
-        if step % 5000 ==0: 
+        if step % 5000 ==0 and step!=0: 
             save(sess,saver_5000,os.path.join(args.checkpoint_dir, "weights"),step=step)
             print("Saved checkpoint ", step)
 
-        elif step % 1000 ==0:
+        elif step % 1000 ==0 and step!=0:
             save(sess,saver,os.path.join(args.checkpoint_dir, "weights"),step=step)
             print("Saved checkpoint ", step)
         
     coord.request_stop()
-    coord.join(stop_grace_period_secs=30)
+    coord.join(threads)
+sys.exit(0)
