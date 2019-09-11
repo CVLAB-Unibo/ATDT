@@ -2,14 +2,18 @@ language: python
 dist: bionic
 cache: pip
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 env:
  matrix:
-   - TF_VER = 1.11
-   - TF_VER = 1.10
+   - TF_VER = "1.11"
+   - TF_VER = "1.10"
+before_install: 
+ - cp requirements.txt requirements_tmp.txt; sed -i '$ d' requirements_tmp.txt;
 install:
- - pip install -r requirements.txt
+ - pip install tensorflow==$TF_VER
+ - pip install -r requirements_tmp.txt
+after_install :
+ - rm requirements_tmp.txt
 script:
  - bash test_travis/train_task.sh

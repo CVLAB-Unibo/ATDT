@@ -1,4 +1,4 @@
-tensorflow==$TF_VER
 numpy
 matplotlib
 opencv-python
+tensorflow==1.12
