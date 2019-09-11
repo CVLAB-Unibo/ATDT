@@ -1,1 +1,3 @@
-return 0
+import sys
+
+sys.exit(0)
