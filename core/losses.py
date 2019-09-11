@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-from functools import partial
 
 def cross_entropy_loss(logits,labels,num_classes):
     labels = tf.squeeze(labels, axis=3)
