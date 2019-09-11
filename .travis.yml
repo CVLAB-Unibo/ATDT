@@ -6,4 +6,4 @@ python:
 install:
  - pip install -r requirements.txt
 script:
- - python3 test_travis/test.py
+ - bash test_travis/train_task.sh
