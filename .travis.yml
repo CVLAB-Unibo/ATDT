@@ -6,8 +6,8 @@ python:
   - "3.6"
 env:
  matrix:
-   - TF_VER = "1.11"
-   - TF_VER = "1.10"
+   - TF_VER="1.11"
+   - TF_VER="1.10"
 before_install: 
  - cp requirements.txt requirements_tmp.txt; sed -i '$ d' requirements_tmp.txt;
 install:
