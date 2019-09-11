@@ -39,7 +39,104 @@ For more details:
 
 ## Download pretrain models
 
-## Train 
 Coming soon.
 
-## Inference and evaluation
+## Training AT/DT
+
+### Step 1-2: Training Task Networks
+
+1: train a network on Domain A+B and Task 1 
+
+``` 
+python3 train_task.py \
+      --data_path $path_dataset_mixed \
+      --input_list $path_mixed_list 
+      --checkpoint_dir $path_checkpoint_task_source \
+      --steps 150000 \
+      --batch_size 8 \
+      --task $source_task \
+      --normalizer_fn batch_norm \
+      --crop \
+      --crop_w 512 \
+      --crop_h 512 \
+```
+
+2: train a network on Domain A and Task 2
+
+``` 
+python3 train_task.py \
+      --data_path $path_dataset_source \
+      --input_list $path_source_list 
+      --checkpoint_dir $path_checkpoint_task_source \
+      --steps 25000 \
+      --batch_size 8 \
+      --task $target_task \
+      --normalizer_fn batch_norm \
+      --crop \
+      --crop_w 512 \
+      --crop_h 512 \
+```
+
+### Step 3: Training Task Transfer Network (_TrNet_)
+
+3: Train TrNet on A (From Task 1 to Task 2)
+
+``` 
+python3 train_transfer.py 
+      --data_path $path_dataset_source 
+      --input_list $path_source_list 
+      --checkpoint_dir $path_checkpoint_transfer 
+      --steps 100000 
+      --batch_size 1 
+      --lr 0.00001 
+      --target_task $target_task 
+      --normalizer_fn batch_norm 
+      --random_crop 
+      --crop_w 512 
+      --crop_h 512 
+      --checkpoint_encoder_source $path_checkpoint_task_source
+      --checkpoint_encoder_target $path_checkpoint_task_target
+      --checkpoint_decoder        $path_checkpoint_task_target
+```
+
+## Inference AT/DT
+
+```
+python3 test_transfer.py 
+        --data_path $path_target_dataset 
+        --input_list $path_target_validation_list 
+        --checkpoint_dir $path_checkpoint_transfer --checkpoint_encoder_source $path_checkpoint_task_source --checkpoint_decoder $path_checkpoint_task_target 
+        --test_dir $test_dir_transfer 
+        --normalizer_fn batch_norm 
+        --model dilated-resnet  
+        --save_predictions 
+        --target_task $target_task
+```
+
+## Evaluation
+
+```
+python3 ../eval_task.py 
+        --dataset_target $dataset_target 
+        --data_path $path_target_dataset 
+        --input_list $path_target_validation_list 
+        --task $target_task 
+        --pred_folder $test_dir_transfer/predictions 
+        --output $path_results_transfer 
+        --convert_to carla 
+        --convert_gt
+```
+
+where 
+
+`path_dataset_source` and `path_dataset_mixed` and `path_target_dataset`: directory containing the dataset A and A+B dataset
+
+`path_source_list` and `path_mixed_list` and `path_target_validation_list`: txt file where each row contains the relative path to [left_image_path];[semantic_labels];[depth_labels]. Examples of input lists are on *filelist/* folder.
+
+`path_checkpoint_task_target` : path to checkpoint of the network trained on Task 1 and Domain A+B (e.g. Cityscapes and Carla on depth estimation)
+
+`path_checkpoint_transfer` : path to checkpoint of the network trained on Task 2 and Domain 1 (e.g. Carla on semantic segmentation)
+
+`path_checkpoint_transfer` : path to checkpoint of the Transfer Network (TrNet)
+
+`dataset_target` : name of the target dataset (e.g. cityscapes)
