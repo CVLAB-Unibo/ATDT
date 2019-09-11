@@ -9,7 +9,7 @@ env:
    - TF_VER = "1.11"
    - TF_VER = "1.10"
 before_install: 
- - cp requirements.txt requirements_tmp.txt; sed -i '$ d' requirements_tmp.txt;
+ - cp requirements.txt requirements_tmp.txt; sed -i '$ d' requirements_tmp.txt
 install:
  - pip install tensorflow==$TF_VER
  - pip install -r requirements_tmp.txt
