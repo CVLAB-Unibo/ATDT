@@ -149,3 +149,5 @@ with tf.Session(config=config) as sess:
         
     coord.request_stop()
     coord.join(stop_grace_period_secs=30)
+
+sys.exit(0)
