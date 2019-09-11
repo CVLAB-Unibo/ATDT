@@ -148,4 +148,4 @@ with tf.Session(config=config) as sess:
             print("Saved checkpoint ", step)
         
     coord.request_stop()
-    coord.join(threads)
+    coord.join()
