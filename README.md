@@ -131,7 +131,7 @@ where
 
 `path_dataset_source` and `path_dataset_mixed` and `path_target_dataset`: directory containing the dataset A and A+B dataset
 
-`path_source_list` and `path_mixed_list` and `path_target_validation_list`: txt file where each row contains the relative path to [left_image_path];[semantic_labels];[depth_labels]. Examples of input lists are on *filelist/* folder.
+`path_source_list` and `path_mixed_list` and `path_target_validation_list`: txt file where each row contains the relative path to [left_image_path];_;[semantic_labels];[depth_labels]. Examples of input lists are on *filelist/* folder.
 
 `path_checkpoint_task_target` : path to checkpoint of the network trained on Task 1 and Domain A+B (e.g. Cityscapes and Carla on depth estimation)
 
