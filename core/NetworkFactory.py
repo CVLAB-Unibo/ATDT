@@ -106,8 +106,14 @@ class TransferNetwork(Network):
         self.target_task = params.task
         self.model=model
         self.feature_level=feature_level
+        
         if params.normalizer_fn == 'batch_norm':
             self.normalizer_fn_frozen = lambda x : tf.layers.batch_normalization(x,training=False)
+        elif params.normalizer_fn == 'group_norm':
+            self.normalizer_fn_frozen = lambda x : group_norm(x)
+        elif params.normalizer_fn == 'instance_norm':
+            self.normalizer_fn_frozen = lambda x : instance_norm(x)
+            
         super().__init__(inputs, params,reuse_variables)
 
     def build_encoder(self):
@@ -156,7 +162,6 @@ class TransferNetwork(Network):
         #### TRANSFER ####
         with tf.variable_scope('transfer',reuse=self.reuse_variables):
             print("Building Transfer Network")
-## RICORDARSI DI AGGIUGNERE LA BATCH NORM ANCHE NELLA TRANSFER ####
             self.adapted_features=transfer_network(self.features_source)
 
         #### DECODERS ####
